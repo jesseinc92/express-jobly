@@ -65,7 +65,7 @@ class Company {
                   num_employees AS "numEmployees",
                   logo_url AS "logoUrl"
            FROM companies
-           ${whereClause !== undefined ? `WHERE ${whereClause}` : ''}
+           ${whereClause ? `WHERE ${whereClause}` : ''}
            ORDER BY name`);
     return companiesRes.rows;
   }
