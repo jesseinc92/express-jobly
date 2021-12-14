@@ -25,4 +25,44 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
   };
 }
 
-module.exports = { sqlForPartialUpdate };
+
+/** Constructs a WHERE clause for query insertion.
+ * 
+ * The incoming query object is converted to a formatted string like so:
+ * 
+ * {name: 'Ba', maxEmployees: '300'} => "lower(name) LIKE '%ba%' AND num_employees <= 300"
+ * 
+ * If both max and min parameters are passed, then their values are typecast to Number and
+ * compared to make sure min is not larger than or equal to max.
+ */
+
+function filterToSql(filters) {
+  let filterArray = [];
+  const keys = Object.keys(filters);
+  const values = Object.values(filters);
+
+  if (+filters['minEmployees'] >= +filters['maxEmployees']) {
+    throw new BadRequestError('MinEmployees cannot be larger than MaxEmployees');
+  }
+
+  for (let i = 0; i < keys.length; i++) {
+    switch (keys[i]) {
+      case 'nameLike':
+        filterArray.push(`lower(name) LIKE '%${values[i].toLowerCase()}%'`);
+        break;
+      case 'minEmployees':
+        filterArray.push(`num_employees >= ${values[i]}`);
+        break;
+      case 'maxEmployees':
+        filterArray.push(`num_employees <= ${values[i]}`);
+        break;
+    }
+  }
+
+  return filterArray.join(' AND ');
+}
+
+module.exports = { 
+  sqlForPartialUpdate,
+  filterToSql
+};

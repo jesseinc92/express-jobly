@@ -12,6 +12,7 @@ const {
   commonAfterAll,
   u1Token,
 } = require("./_testCommon");
+const req = require("express/lib/request");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -93,6 +94,31 @@ describe("GET /companies", function () {
               logoUrl: "http://c3.img",
             },
           ],
+    });
+  });
+
+  test('ok with one filter', async function () {
+    const resp = await request(app).get('/companies?nameLike=c1');
+    expect(resp.body).toEqual({
+      companies: [
+        {
+          handle: "c1",
+          name: "C1",
+          description: "Desc1",
+          numEmployees: 1,
+          logoUrl: "http://c1.img",
+        }
+      ]
+    });
+  });
+
+  test('failes if max and min violate constraint', async function () {
+    const resp = await request(app).get('/companies?minEmployees=200&maxEmployees=100');
+    expect(resp.body).toEqual({
+      error: {
+        message: 'MinEmployees cannot be larger than MaxEmployees',
+        status: 400
+      }
     });
   });
 
