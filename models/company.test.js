@@ -1,5 +1,7 @@
 "use strict";
 
+process.env.NODE_ENV = 'test';
+
 const db = require("../db.js");
 const { BadRequestError, NotFoundError } = require("../expressError");
 const Company = require("./company.js");

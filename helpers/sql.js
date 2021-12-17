@@ -15,9 +15,16 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
   if (keys.length === 0) throw new BadRequestError("No data");
 
   // {firstName: 'Aliya', age: 32} => ['"first_name"=$1', '"age"=$2']
-  const cols = keys.map((colName, idx) =>
-      `"${jsToSql[colName] || colName}"=$${idx + 1}`,
-  );
+  let cols;
+  if (jsToSql) {
+    cols = keys.map((colName, idx) =>
+    `"${jsToSql[colName] || colName}"=$${idx + 1}`,
+    );
+  } else {
+    cols = keys.map((colName, idx) =>
+    `"${colName}"=$${idx + 1}`,
+    );
+  }
 
   return {
     setCols: cols.join(", "),
@@ -55,6 +62,17 @@ function filterToSql(filters) {
         break;
       case 'maxEmployees':
         filterArray.push(`num_employees <= ${values[i]}`);
+        break;
+      case 'titleLike':
+        filterArray.push(`lower(title) LIKE '%${values[i].toLowerCase()}%'`);
+        break;
+      case 'minSalary':
+        filterArray.push(`salary >= ${values[i]}`);
+        break;
+      case 'hasEquity':
+        if (values[i] === 'true') {
+          filterArray.push(`equity > 0`);
+        }
         break;
     }
   }
