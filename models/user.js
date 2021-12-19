@@ -10,6 +10,8 @@ const {
 } = require("../expressError");
 
 const { BCRYPT_WORK_FACTOR } = require("../config.js");
+const { user } = require("pg/lib/defaults");
+const { application } = require("express");
 
 /** Related functions for users. */
 
@@ -118,7 +120,7 @@ class User {
   /** Given a username, return data about user.
    *
    * Returns { username, first_name, last_name, is_admin, jobs }
-   *   where jobs is { id, title, company_handle, company_name, state }
+   *   where jobs is [ job_id, ... ]
    *
    * Throws NotFoundError if user not found.
    **/
@@ -138,6 +140,15 @@ class User {
     const user = userRes.rows[0];
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
+
+    const appRes = await db.query(
+      `SELECT job_id AS "jobId"
+       FROM applications
+       WHERE username = $1`,
+       [username]
+    );
+
+    user.jobs = appRes.rows.map(a => a.user_id);
 
     return user;
   }
@@ -188,6 +199,32 @@ class User {
 
     delete user.password;
     return user;
+  }
+
+  /** Apply for a job */
+
+  static async apply(username, jobId) {
+    const duplicateCheck = await db.query(
+      `SELECT username, job_id AS "jobId"
+       FROM applications
+       WHERE username = $1, job_id = $2`,
+       [username, jobId]
+    );
+
+    if (duplicateCheck.rows[0]) {
+      throw new BadRequestError('Duplicate application');
+    }
+
+    const appRes = await db.query(
+      `INSERT INTO applications
+       (username, job_id)
+       VALUES ($1, $2)
+       RETURNING username, job_id AS "jobId"`,
+       [username, jobId]);
+
+    const application = appRes.rows;
+
+    return application;
   }
 
   /** Delete given user from database; returns undefined. */
