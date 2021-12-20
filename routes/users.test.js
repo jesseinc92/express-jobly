@@ -14,6 +14,7 @@ const {
   u1Token,
   u2Token
 } = require("./_testCommon");
+const Job = require("../models/job.js");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -192,6 +193,7 @@ describe("GET /users/:username", function () {
         lastName: "U1L",
         email: "user1@user.com",
         isAdmin: false,
+        jobs: []
       },
     });
   });
@@ -244,7 +246,7 @@ describe("PATCH /users/:username", () => {
         firstName: "New",
         lastName: "U1L",
         email: "user1@user.com",
-        isAdmin: false,
+        isAdmin: false
       },
     });
   });
@@ -296,6 +298,25 @@ describe("PATCH /users/:username", () => {
     });
     const isSuccessful = await User.authenticate("u1", "new-password");
     expect(isSuccessful).toBeTruthy();
+  });
+});
+
+/************************************** POST /users/:username/jobs/:id */
+
+describe('POST /users/:username/jobs/:id', function () {
+  test('application', async function () {
+    const newJob = await Job.create({
+      title: 'j4',
+      salary: 4,
+      equity: '0.4',
+      companyHandle: 'c1'});
+
+    const resp = await request(app).post(`/users/u2/jobs/${newJob.id}`)
+        .set("authorization", `Bearer ${u2Token}`);
+
+    expect(resp.body).toEqual({
+      applied: newJob.id
+    });
   });
 });
 

@@ -7,6 +7,7 @@ const {
 } = require("../expressError");
 const db = require("../db.js");
 const User = require("./user.js");
+const Job = require('./job')
 const {
   commonBeforeAll,
   commonBeforeEach,
@@ -206,6 +207,29 @@ describe("update", function () {
     } catch (err) {
       expect(err instanceof BadRequestError).toBeTruthy();
     }
+  });
+});
+
+/*************************************** apply */
+
+describe('apply', function () {
+  const newJob = {
+    title: 'j4',
+    salary: 4,
+    equity: '0.4',
+    companyHandle: 'c1'
+  };
+
+  test('application for a logged in user', async function () {
+    let job = await Job.create(newJob);
+    console.log(job)
+    let jobApp = await User.apply('u1', job.id);
+    console.log(jobApp)
+
+    expect(jobApp).toEqual({
+      username: 'u1',
+      jobId: job.id
+    });
   });
 });
 

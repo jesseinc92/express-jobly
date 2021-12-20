@@ -110,7 +110,7 @@ router.patch("/:username", ensureAdminOrCorrectUser, async function (req, res, n
 
 router.post('/:username/jobs/:id', ensureAdminOrCorrectUser, async function (req, res, next) {
   try {
-    const app = await User.apply(username, id);
+    const app = await User.apply(req.params.username, req.params.id);
     return res.json({ applied: app.jobId })
   } catch (err) {
     return next(err);

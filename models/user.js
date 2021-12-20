@@ -207,7 +207,7 @@ class User {
     const duplicateCheck = await db.query(
       `SELECT username, job_id AS "jobId"
        FROM applications
-       WHERE username = $1, job_id = $2`,
+       WHERE username = $1 AND job_id = $2`,
        [username, jobId]
     );
 
@@ -222,7 +222,7 @@ class User {
        RETURNING username, job_id AS "jobId"`,
        [username, jobId]);
 
-    const application = appRes.rows;
+    const application = appRes.rows[0];
 
     return application;
   }
